@@ -3,7 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <MiniMath/Core.h>
-
+//VERSION VERSION
 
 #define CHAR_BUFFER_SIZE 128
 #define BUFFER_OFFSET(i) ((char *)0+(i))
@@ -17,24 +17,24 @@ struct MeshFace
 		vertices[2] = 0;
 		// No need for UV yet
 
-		//textureUVs[0] = 0;
-		//textureUVs[1] = 0;
-		//textureUVs[2] = 0;
+		textureUVs[0] = 0;
+		textureUVs[1] = 0;
+		textureUVs[2] = 0;
 
 		normals[0] = 0;
 		normals[1] = 0;
 		normals[2] = 0;
 	}
-	MeshFace(unsigned v1, unsigned v2, unsigned v3, unsigned n1, unsigned n2, unsigned n3)
+	MeshFace(unsigned v1, unsigned v2, unsigned v3, unsigned t1, unsigned t2, unsigned t3,unsigned n1, unsigned n2, unsigned n3)
 	{
 		vertices[0] = v1;
 		vertices[1] = v2;
 		vertices[2] = v3;
 		// No need for UV yet
 
-		//textureUVs[0] = 0;
-		//textureUVs[1] = 0;
-		//textureUVs[2] = 0;
+		textureUVs[0] = t1;
+		textureUVs[1] = t2;
+		textureUVs[2] = t3;
 
 		normals[0] = n1;
 		normals[1] = n2;
@@ -70,14 +70,14 @@ bool Mesh::LoadFromFile(const std::string &file)
 
 	//Unique data 
 	std::vector<vec3> vertexData;
-	//std::vector<vec2> textureData;
+	std::vector<vec2> textureData;
 	std::vector<vec3> normalData;
 
 	//index and face data
 	std::vector<MeshFace> faceData;
 	//OpenGL ready data
 	std::vector<float> unPackedVertexData;
-	//std::vector<float> unPackedTextureData;
+	std::vector<float> unPackedTextureData;
 	std::vector<float> unPackedNormalData;
 
 	while (!input.eof())
@@ -98,6 +98,14 @@ bool Mesh::LoadFromFile(const std::string &file)
 			normalData.push_back(temp);
 		}
 
+		else if (std::strstr(inputString, "vt") != nullptr)
+		{
+			//This line has normal data
+			vec2 temp;
+			std::sscanf(inputString, "vt %f %f", &temp.x, &temp.y);
+			textureData.push_back(temp);
+		}
+
 		else if (std::strstr(inputString, "v") != nullptr)
 		{
 			//This line has vertex data
@@ -110,10 +118,10 @@ bool Mesh::LoadFromFile(const std::string &file)
 		{
 			//This line has vertex data
 			MeshFace temp;
-			std::sscanf(inputString, "f %u//%u %u//%u %u//%u", 
-				&temp.vertices[0] , &temp.normals[0],
-				&temp.vertices[1] , &temp.normals[1],
-				&temp.vertices[2] , &temp.normals[2]);
+			std::sscanf(inputString, "f %u/%u/%u %u/%u/%u %u/%u/%u", 
+				&temp.vertices[0] ,&temp.textureUVs[0], &temp.normals[0],
+				&temp.vertices[1] ,&temp.textureUVs[1], &temp.normals[1],
+				&temp.vertices[2] ,&temp.textureUVs[2], &temp.normals[2]);
 			
 			faceData.push_back(temp);
 		}
@@ -129,8 +137,8 @@ bool Mesh::LoadFromFile(const std::string &file)
 			unPackedVertexData.push_back(vertexData[faceData[i].vertices[j] - 1].y);
 			unPackedVertexData.push_back(vertexData[faceData[i].vertices[j] - 1].z);
 
-			//unPackedTextureData.push_back(textureData[faceData[i].textureUVs[j] - 1].x);
-			//unPackedTextureData.push_back(textureData[faceData[i].textureUVs[j] - 1].y);
+			unPackedTextureData.push_back(textureData[faceData[i].textureUVs[j] - 1].x);
+			unPackedTextureData.push_back(textureData[faceData[i].textureUVs[j] - 1].y);
 
 			unPackedNormalData.push_back(normalData[faceData[i].normals[j] - 1].x);
 			unPackedNormalData.push_back(normalData[faceData[i].normals[j] - 1].y);
@@ -145,21 +153,26 @@ bool Mesh::LoadFromFile(const std::string &file)
 	//Send Data to OpenGL
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO_Vertices);
-	//glGenBuffers(1, &VBO_UVs);
+	glGenBuffers(1, &VBO_UVs);
 	glGenBuffers(1, &VBO_Normals);
 
 	glBindVertexArray(VAO);
 	
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, VBO_Vertices);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * unPackedVertexData.size(), &unPackedVertexData[0],GL_STATIC_DRAW);
 	glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3, BUFFER_OFFSET(0));
 
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_UVs);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * unPackedVertexData.size(), &unPackedVertexData[0], GL_STATIC_DRAW);
+	glVertexAttribPointer((GLuint)1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, BUFFER_OFFSET(0));
+
 	glBindBuffer(GL_ARRAY_BUFFER, VBO_Normals);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * unPackedNormalData.size(), &unPackedNormalData[0], GL_STATIC_DRAW);
-	glVertexAttribPointer((GLuint)1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, BUFFER_OFFSET(0));
+	glVertexAttribPointer((GLuint)2, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, BUFFER_OFFSET(0));
 
 	//Cleanup
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -167,9 +180,11 @@ bool Mesh::LoadFromFile(const std::string &file)
 
 	vertexData.clear();
 	normalData.clear();
+	textureData.clear();
 	faceData.clear();
 	unPackedVertexData.clear();
 	unPackedNormalData.clear();
+	unPackedTextureData.clear();
 
 	return true;
 }
@@ -177,12 +192,12 @@ bool Mesh::LoadFromFile(const std::string &file)
 void Mesh::Unload()
 {
 	glDeleteBuffers(1, &VBO_Normals);
-	//glDeleteBuffers(1, &VBO_UVs);
+	glDeleteBuffers(1, &VBO_UVs);
 	glDeleteBuffers(1, &VBO_Vertices);
 	glDeleteVertexArrays(1, &VAO);
 
 	VBO_Normals = 0;
-	//VBO_UVs = 0;
+	VBO_UVs = 0;
 	VBO_Vertices = 0;
 
 	_NumFaces = 0;

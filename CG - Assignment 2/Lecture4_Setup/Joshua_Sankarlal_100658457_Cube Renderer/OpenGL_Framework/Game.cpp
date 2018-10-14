@@ -40,7 +40,7 @@ Game::~Game()
 void Game::initializeGame()
 {
 	updateTimer = new Timer();
-	object.LoadFromFile("Couch.obj");
+	object.LoadFromFile("Monkey.obj");
 
 	int success = GL_FALSE;
 	//Create shaders program 

@@ -19,7 +19,7 @@ public:
 	
 	//Open GL buffers and objects
 	GLuint VBO_Vertices = 0;
-	//GLuint VBO_UVs		= 0;
+	GLuint VBO_UVs		= 0;
 	GLuint VBO_Normals	= 0;
 	GLuint VAO			= 0;
 	
