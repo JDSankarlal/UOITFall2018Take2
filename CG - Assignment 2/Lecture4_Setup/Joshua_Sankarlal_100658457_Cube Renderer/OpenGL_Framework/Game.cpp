@@ -7,21 +7,24 @@ Mesh object;
 
 
 const char* vertexShaderSource = 
-	"#version 330\n"
+	"#version 420\n"
 	"layout(location = 0) in vec3 mesh_position;\n"
-	"layout(location = 1) in vec3 mesh_color;\n"
+	"layout(location = 1) in vec2 mesh_UVs;\n"
+	"layout(location = 2) in vec3 mesh_normal;\n"
+	""
 	"uniform mat4 u_model;\n"
 	"uniform mat4 u_view;\n"
 	"uniform mat4 u_projection;\n"
+	""
 	"out vec3 color;\n"
 	"void main()\n"
 	"{\n"
 	"	gl_Position = u_projection * u_view * u_model * vec4(mesh_position, 1.0);\n"
-	"	color = mesh_color;\n"
+	"	color = vec3( 1.f,1.f,1.f);\n"
 	"}\n";
 
 const char* fragmentShaderSource = 
-	"#version 330\n"
+	"#version 420\n"
 	"in vec3 color;\n"
 	"out vec4 pixelColor;\n"
 	"void main() { pixelColor = vec4(color, 1.0f); }\n";
@@ -41,6 +44,7 @@ void Game::initializeGame()
 {
 	updateTimer = new Timer();
 	object.LoadFromFile("Monkey.obj");
+	//std::cout << object.GetNumFaces() << std::endl;
 
 	int success = GL_FALSE;
 	//Create shaders program 
@@ -74,12 +78,19 @@ void Game::initializeGame()
 	glAttachShader(program, fragShader);
 	glLinkProgram(program);
 
-	//Setup scene
+	glGetProgramiv(program, GL_LINK_STATUS, &success);
+	if (success == GL_FALSE) { exit(EXIT_FAILURE); };
 
-	float aspect = 800.0f / 432.0f; // Width / Height
+	//glBindBuffer(GL_ARRAY_BUFFER, GL_NONE);
+	//glBindVertexArray(GL_NONE);
+	
+	//Setup scene
+	//glEnable(GL_DEPTH_TEST);
+	glClearColor(.2f, .2f, .2f, 1); // Black.
+	float aspect = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT);
 	camera.perspective(60.0f, aspect, 1.0f, 1000.0f);
-	camera.m_pLocalPosition = vec3(0.0f, 4.0f, 4.0f);
-	camera.setRotationAngleX(-45.0f);
+	camera.m_pLocalPosition = vec3(0.0f, 0.0f, 0.0f);
+	//camera.setRotationAngleX(-45.0f);
 }
 
 void Game::update()
@@ -89,16 +100,15 @@ void Game::update()
 	float deltaTime = updateTimer->getElapsedTimeSeconds();
 	TotalGameTime += deltaTime;
 
-	cube.setRotationAngleY(TotalGameTime*15.0f);
+	object.setPosition(vec3(0,0,0));
 	camera.update(deltaTime);
-	cube.update(deltaTime);
 	// ...
 }
 
 void Game::draw()
 {
 	glEnable(GL_DEPTH_TEST);
-	glClearColor(0, 0, 0, 0);
+	//glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Bind Program
@@ -114,14 +124,17 @@ void Game::draw()
 	int projectionLoc = glGetUniformLocation(program,
 		"u_projection");
 
-	glUniformMatrix4fv(modelLoc, 1, false, cube.getLocalToWorldMatrix().data);
+	
+
+	glUniformMatrix4fv(modelLoc, 1, false, object.getLocalToWorldMatrix().data);
 	glUniformMatrix4fv(viewLoc, 1, false, camera.getLocalToWorldMatrix().GetInverse().data);
 	glUniformMatrix4fv(projectionLoc, 1, false, camera.getProjection().data);
 
 	//Bind Mesh
-	glBindVertexArray(VAO
-	);
-	glDrawArrays(GL_TRIANGLES,0,12*3);
+	glBindVertexArray(object.VAO);
+
+	glDrawArrays(GL_TRIANGLES, object.VAO,object.GetNumVertices());
+
 	glBindVertexArray(GL_NONE);
 	glutSwapBuffers();
 

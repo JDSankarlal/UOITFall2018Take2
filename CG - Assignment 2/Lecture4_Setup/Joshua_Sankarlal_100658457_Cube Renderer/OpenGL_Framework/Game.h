@@ -6,6 +6,8 @@
 #include <GL/glut.h>
 #include "Camera.h"
 
+#define WINDOW_WIDTH			800
+#define WINDOW_HEIGHT			432
 
 #include "Timer.h"
 
@@ -29,9 +31,9 @@ public:
 	Timer *updateTimer	= nullptr;
 	float TotalGameTime = 0.0f;
 private:
-	unsigned int VBO = GL_NONE;
-	unsigned int VBO_2 = GL_NONE;
-	unsigned int VAO = GL_NONE;
+	//unsigned int VBO = GL_NONE;
+	//unsigned int VBO_2 = GL_NONE;
+	//unsigned int VAO = GL_NONE;
 	unsigned int program = GL_NONE;
 	unsigned int vertShader = GL_NONE;
 	unsigned int fragShader = GL_NONE;

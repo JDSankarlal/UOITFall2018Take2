@@ -83,7 +83,6 @@ int main(int argc, char **argv)
 
 	glewInit();
 	std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
-
 	/* set up our function callbacks */
 	glutDisplayFunc(DisplayCallbackFunction);
 	glutKeyboardFunc(KeyboardCallbackFunction);
