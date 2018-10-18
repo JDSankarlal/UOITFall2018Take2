@@ -81,8 +81,8 @@ void Game::initializeGame()
 	glGetProgramiv(program, GL_LINK_STATUS, &success);
 	if (success == GL_FALSE) { exit(EXIT_FAILURE); };
 
-	//glBindBuffer(GL_ARRAY_BUFFER, GL_NONE);
-	//glBindVertexArray(GL_NONE);
+	glBindBuffer(GL_ARRAY_BUFFER, GL_NONE);
+	glBindVertexArray(GL_NONE);
 	
 	//Setup scene
 	//glEnable(GL_DEPTH_TEST);
